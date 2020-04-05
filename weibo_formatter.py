@@ -11,6 +11,8 @@ import re
 class Weibo(object):
     def __init__(self,since_date='1900-01-01'):    
         self.weibo = []  # 存储爬取到的所有微博信息
+        self.formatted = []
+        self.url = []
         self.user = {}  # 存储目标微博用户信息
         self.user_id_list = []
         self.got_count = 0  # 爬取到的微博数
@@ -196,7 +198,7 @@ class Weibo(object):
         else:
             return False
 
-    def get_one_page(self, js):
+    def get_one_page(self, js,url):
         if js['ok']:
             weibos = js['data']['cards']
             for w in weibos:
@@ -214,6 +216,7 @@ class Weibo(object):
                                 return True
                         if (not self.filter) or ('retweet' not in wb.keys()):
                             self.weibo.append(wb)
+                            self.url.append(url)
                             self.weibo_id_list.append(wb['id'])
                             self.got_count = self.got_count + 1
 
