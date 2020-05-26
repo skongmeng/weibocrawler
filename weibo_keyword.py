@@ -3,21 +3,26 @@ import weibo_comment
 import weibo_formatter
 import os
 import csv
+from datetime import datetime
+
+date = datetime.now().strftime("%Y%m%d")
 
 def export_data(keyword,alist):
+    filename = "weibo_" + date + "_" + keyword
     folder = "weibo/{}/{}"
-    commentFile = open(folder.format(keyword,"allcomment.csv"),'w+',encoding='utf-8',newline="")
+    commentFile = open(folder.format(keyword,filename + ".csv"),'w+',encoding='utf-8',newline="")
     fieldnames = ['date','time','url','author', 'comment', 'emotion']
     writer = csv.DictWriter(commentFile, fieldnames=fieldnames)
     writer.writeheader()
     commentFile.close() 
-    commentFile = open(folder.format(keyword,"allcomment.csv"),'a',encoding='utf-8',newline="")
+    commentFile = open(folder.format(keyword,filename + ".csv"),'a',encoding='utf-8',newline="")
     writer = csv.DictWriter(commentFile, fieldnames=fieldnames)
     for comment in alist:
         writer.writerow({'date':comment[0],'time':comment[1],'url':comment[2],'author':comment[3],'comment':comment[4],'emotion':'None'})
     commentFile.close()
 
 def crawl(keyword,post_page,comment_page,since_date):
+    filename = "weibo_" + date + "_" + keyword
     url='https://m.weibo.cn/api/container/getIndex?type=all&queryVal={}&featurecode=20000320&luicode=10000011&lfid=106003type%3D1&title={}&containerid=100103type%3D1%26q%3D{}'.format(keyword,keyword,keyword)
     folder = "weibo/{}"
     wb = weibo_formatter.Weibo(since_date)
@@ -42,7 +47,7 @@ def crawl(keyword,post_page,comment_page,since_date):
     efolder = folder.format(keyword)
     if not os.path.exists(efolder):
         os.makedirs(efolder)
-    file = open(efolder + '/post.txt','w+',encoding='utf-8')
+    file = open(efolder + '/' + filename + '.txt','w+',encoding='utf-8')
         #date; time; url links: person who post; label emotions if have, else label as None
     for text in wb.weibo:
         print("Recording post information at post %d" % post)
@@ -53,11 +58,13 @@ def crawl(keyword,post_page,comment_page,since_date):
     file.close()
     print("Done recording post")
     export_data(keyword,wb.formatted)
-    wb.comment = weibo_comment.get_coment(keyword,wb.weibo_id_list,comment_page,5,10*60)
+    wb.comment = weibo_comment.get_coment(keyword,wb.weibo_id_list,comment_page,10,10)
     #here to change the crawling interval at the last two parameter
     #last second parameter is the number of post crawl to stop for a while, note that 1 post has many comment
     #last parameter is the time in second of the interval
     return wb
 
 #crawl(keyword searching,post page(1post has about 20 post,comment page(1 page has unknown comment),since what date))
-wb = crawl("杂菜",5,10,'2018-01-01')
+wordlist = ['鸭子']
+for w in wordlist:
+    wb = crawl(w,1,1,'2018-01-01')

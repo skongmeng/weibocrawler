@@ -7,6 +7,8 @@ import html
 import csv
 from datetime import datetime, timedelta
 
+date = datetime.now().strftime("%Y%m%d")
+
 def standardize_date(created_at):
     """标准化微博发布时间"""
     date = datetime.now().strftime("%Y-%m-%d")
@@ -51,11 +53,11 @@ def get_one_comment(weibo_id,page_comment):
                     match = re.search(r'(^.*?)(:|：)(.*:|：)?(.*$)',stripComment)
                     try:
                         name,comment = match.group(1),match.group(4)
+                        dateNTime = re.sub(r'<.*?>|\n','',d)
+                        dateNTime = standardize_date(dateNTime)
+                        all_comment.append([dateNTime[0],dateNTime[1],Curl,name,comment,'None'])
                     except:
                         print("Cannot find information in comment")
-                    dateNTime = re.sub(r'<.*?>|\n','',d)
-                    dateNTime = standardize_date(dateNTime)
-                    all_comment.append([dateNTime[0],dateNTime[1],Curl,name,comment,'None'])
                         
             else:
                 print('The comments are missing time')
@@ -65,12 +67,13 @@ def get_one_comment(weibo_id,page_comment):
     return all_comment
 
 def get_coment(word,weibo_id_list,comment_page,stopper,time_sleep):
+    filename = "weibo_" + date + "_" + word
     folder = "weibo/{}/{}"
     
     index = 0
     commentlist = []
     for id in weibo_id_list:
-        commentFile = open(folder.format(word,"allcomment.csv"),'a',encoding='utf-8',newline="")
+        commentFile = open(folder.format(word,filename + '.csv'),'a',encoding='utf-8',newline="")
         fieldnames = ['date','time','url','author', 'comment', 'emotion']
         writer = csv.DictWriter(commentFile, fieldnames=fieldnames)
         print("Crawling comment of post {}".format(id))
